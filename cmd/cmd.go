@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/tanan/wg-in-handy/api"
@@ -103,7 +104,7 @@ func (cmd *Command) runAsAPI(cCtx *cli.Context) error {
 // TODO: implement
 func (cmd *Command) showInterface(cCtx *cli.Context) error {
 	inf := cmd.Operator.ShowInterface()
-	slog.Info("interface", slog.String("Name", inf.Name), slog.String("Address", inf.Address))
+	slog.Info("interface", slog.String("Name", inf.Name), slog.String("Address", inf.Address), slog.String("ListenPort", strconv.Itoa(inf.ListenPort)))
 	return nil
 }
 
