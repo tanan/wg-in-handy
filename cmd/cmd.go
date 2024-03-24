@@ -3,20 +3,23 @@ package cmd
 import (
 	"io"
 
+	"github.com/tanan/wg-in-handy/operator"
 	"github.com/urfave/cli/v2"
 )
 
 type Command struct {
-	Stdout io.Writer
-	Stderr io.Writer
-	Stdin  io.Reader
+	Stdout   io.Writer
+	Stderr   io.Writer
+	Stdin    io.Reader
+	Operator *operator.Operator
 }
 
-func NewCommand(stdout io.Writer, stderr io.Writer, stdin io.Reader) *Command {
+func NewCommand(stdout io.Writer, stderr io.Writer, stdin io.Reader, operator *operator.Operator) *Command {
 	return &Command{
-		Stdout: stdout,
-		Stderr: stderr,
-		Stdin:  stdin,
+		Stdout:   stdout,
+		Stderr:   stderr,
+		Stdin:    stdin,
+		Operator: operator,
 	}
 }
 
