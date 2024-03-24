@@ -4,9 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tanan/wg-in-handy/operator"
 )
 
-type Handler struct{}
+type Handler struct {
+	Operator *operator.Operator
+}
 
 func NewHandler() *Handler {
 	return &Handler{}
@@ -18,7 +21,8 @@ func (h *Handler) Health(c *gin.Context) {
 
 // TODO: show wg configuration
 func (h *Handler) ShowInterface(c *gin.Context) {
-	c.String(http.StatusOK, "ShowInterface")
+	inf := h.Operator.ShowInterface()
+	c.JSON(http.StatusOK, inf)
 }
 
 // TODO: get user list

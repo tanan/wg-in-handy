@@ -3,7 +3,12 @@ package cmd
 import (
 	"io"
 	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
+	"github.com/tanan/wg-in-handy/api"
 	"github.com/tanan/wg-in-handy/operator"
 	"github.com/urfave/cli/v2"
 )
@@ -29,8 +34,8 @@ func (cmd Command) Run(args []string) error {
 	app := &cli.App{
 		Commands: []*cli.Command{
 			{
-				Name:  "server",
-				Usage: "run as server",
+				Name:  "api",
+				Usage: "run as api",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:        "config",
@@ -72,6 +77,26 @@ func (cmd Command) Run(args []string) error {
 
 // TODO: implement
 func (cmd *Command) runAsAPI(cCtx *cli.Context) error {
+	router := api.NewRouter()
+	router.Run(":8080")
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: router,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("error when listen", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	slog.Info("Shutdown Server ...")
+
 	return nil
 }
 
