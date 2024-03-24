@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"io"
+	"log/slog"
 
 	"github.com/tanan/wg-in-handy/operator"
 	"github.com/urfave/cli/v2"
@@ -76,6 +77,8 @@ func (cmd *Command) runAsAPI(cCtx *cli.Context) error {
 
 // TODO: implement
 func (cmd *Command) showInterface(cCtx *cli.Context) error {
+	inf := cmd.Operator.ShowInterface()
+	slog.Info("interface", slog.String("Name", inf.Name), slog.String("Address", inf.Address))
 	return nil
 }
 

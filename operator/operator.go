@@ -1,8 +1,9 @@
 package operator
 
 import (
-	"fmt"
+	"log/slog"
 	"os/exec"
+	"strings"
 )
 
 type Interface struct {
@@ -11,19 +12,26 @@ type Interface struct {
 	ListenPort int
 }
 
+const (
+	NameNum    = 1
+	AddressNum = 6
+)
+
 type Operator struct{}
 
 func (o *Operator) ShowInterface() *Interface {
 	// TODO: get wg interface via wg cmd
-	// TODO: get address via ip cmd
-	cmd := exec.Command("wg")
+	cmd := exec.Command("ip", "-f", "inet", "-o", "addr", "show", "ens4")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println("コマンド実行中にエラーが発生しました:", err)
+		slog.Error("Failed to run command", slog.String("error", err.Error()))
 		return nil
 	}
-	fmt.Println(string(out))
-	return &Interface{}
+	res := strings.Split(string(out), " ")
+	return &Interface{
+		Name:    res[NameNum],
+		Address: res[AddressNum],
+	}
 }
 
 // TODO: implement
