@@ -12,6 +12,12 @@ $ wg genkey | tee privatekey | wg pubkey > publickey
 $ wg setconf wg0 wg0.conf
 ```
 
+or
+
+```
+$ wg set wg0 listen-port 51820 private-key /root/server/privatekey peer {Peer Public Key} allowed-ips 192.168.2.0/24 endpoint {Public IP}:51820
+```
+
 - get address via ip command
 
 ```
