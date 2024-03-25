@@ -101,10 +101,13 @@ func (cmd *Command) runAsAPI(cCtx *cli.Context) error {
 	return nil
 }
 
-// TODO: implement
 func (cmd *Command) showInterface(cCtx *cli.Context) error {
 	inf := cmd.Operator.ShowInterface()
-	slog.Info("interface", slog.String("Name", inf.Name), slog.String("Address", inf.Address), slog.String("ListenPort", strconv.Itoa(inf.ListenPort)))
+	slog.Info(
+		"interface", slog.String("Name", inf.Name),
+		slog.String("Address", inf.Address),
+		slog.String("ListenPort", strconv.Itoa(inf.ListenPort)),
+	)
 	return nil
 }
 

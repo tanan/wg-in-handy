@@ -31,3 +31,13 @@ $ ip link add dev wg0 type wireguard
 $ ip address add dev wg0 192.168.2.1/24
 $ ip link set wg0 up
 ```
+
+- create user
+
+```
+curl -XPOST localhost:8080/v1/users -d '
+{
+    "email": "foo@example.com"
+}
+'
+```

@@ -9,7 +9,7 @@ type NetworkInterface struct {
 }
 
 type User struct {
-	Name      string
-	Email     string
-	PublicKey PublicKey
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	PublicKey PublicKey `json:"public_key"`
 }
