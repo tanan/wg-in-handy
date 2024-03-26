@@ -66,7 +66,22 @@ func (o *Operator) getListenPort() (int, error) {
 
 // TODO: implement
 func (o *Operator) GetUsers() {
+}
 
+func (o *Operator) createKey() (entity.UserKeys, error) {
+	// wg genkey | tee privatekey | wg pubkey > publickey
+	genPrivKeyCmd := exec.Command("sudo", "wg", "genkey")
+	privateKey, _ := genPrivKeyCmd.CombinedOutput()
+	pubKeyCmd := exec.Command("sudo", "wg", "pubkey")
+	pubKeyCmd.Stdin = strings.NewReader(string(privateKey))
+	publicKey, _ := pubKeyCmd.CombinedOutput()
+	preSharedKeyCmd := exec.Command("sudo", "wg", "genpsk")
+	preSharedKey, _ := preSharedKeyCmd.CombinedOutput()
+	return entity.UserKeys{
+		PublicKey:    strings.Trim(string((publicKey)), "\n"),
+		PrivateKey:   strings.Trim(string(privateKey), "\n"),
+		PresharedKey: strings.Trim(string(preSharedKey), "\n"),
+	}, nil
 }
 
 func (o *Operator) CreateUser(user *entity.User) error {
@@ -77,7 +92,10 @@ func (o *Operator) CreateUser(user *entity.User) error {
 		return err
 	}
 	defer f.Close()
-	b, _ := json.Marshal(user)
+
+	user.Keys, _ = o.createKey()
+
+	b, _ := json.MarshalIndent(user, "", "  ")
 	_, err = f.Write(b)
 	if err != nil {
 		slog.Error("can't write content", slog.String("file", fileName))
