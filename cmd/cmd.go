@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/tanan/wg-in-handy/api"
+	"github.com/tanan/wg-in-handy/entity"
 	"github.com/tanan/wg-in-handy/operator"
 	"github.com/urfave/cli/v2"
 )
@@ -67,7 +68,12 @@ func (cmd Command) Run(args []string) error {
 								Destination: &configPath,
 							},
 						},
-						Action: cmd.setConf,
+						Action: cmd.setConfig,
+					},
+					{
+						Name:   "genconf",
+						Usage:  "generate config file",
+						Action: cmd.generateConfig,
 					},
 				},
 			},
@@ -112,6 +118,36 @@ func (cmd *Command) showInterface(cCtx *cli.Context) error {
 }
 
 // TODO: implement
-func (cmd *Command) setConf(cCtx *cli.Context) error {
+func (cmd *Command) setConfig(cCtx *cli.Context) error {
+	return nil
+}
+
+func (cmd *Command) generateConfig(cCtx *cli.Context) error {
+	var routes []entity.Route
+	routes = append(routes, entity.Route{
+		Address:     "10.1.0.0/24",
+		Description: "default",
+	})
+	var users []entity.User
+	users = append(users, entity.User{
+		Name:  "user1",
+		Email: "user1@example.com",
+		AuthKeys: entity.AuthKeys{
+			PublicKey: "user-publickey",
+		},
+	})
+	cmd.Operator.GenerateServerConfig(entity.NetworkInterface{
+		Name:       "wg0",
+		Address:    "10.1.0.1/24",
+		ListenPort: 51820,
+		AuthKeys: entity.AuthKeys{
+			PublicKey:    "publickey",
+			PrivateKey:   "privatekey",
+			PresharedKey: "presharedkey",
+		},
+	},
+		routes,
+		users,
+	)
 	return nil
 }

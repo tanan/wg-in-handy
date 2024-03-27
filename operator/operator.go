@@ -12,12 +12,6 @@ import (
 	"github.com/tanan/wg-in-handy/entity"
 )
 
-type Interface struct {
-	Address    string
-	Name       string
-	ListenPort int
-}
-
 const (
 	NameNum       = 1
 	AddressNum    = 6
@@ -54,7 +48,7 @@ func (o *Operator) getAddress(inf string) (string, error) {
 }
 
 func (o *Operator) getListenPort() (int, error) {
-	cmd := exec.Command("sudo", "wg", "show", "wg0", "listen-port")
+	cmd := exec.Command("wg", "show", "wg0", "listen-port")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return 0, err
@@ -68,16 +62,16 @@ func (o *Operator) getListenPort() (int, error) {
 func (o *Operator) GetUsers() {
 }
 
-func (o *Operator) createKey() (entity.UserKeys, error) {
+func (o *Operator) createKey() (entity.AuthKeys, error) {
 	// wg genkey | tee privatekey | wg pubkey > publickey
-	genPrivKeyCmd := exec.Command("sudo", "wg", "genkey")
+	genPrivKeyCmd := exec.Command("wg", "genkey")
 	privateKey, _ := genPrivKeyCmd.CombinedOutput()
-	pubKeyCmd := exec.Command("sudo", "wg", "pubkey")
+	pubKeyCmd := exec.Command("wg", "pubkey")
 	pubKeyCmd.Stdin = strings.NewReader(string(privateKey))
 	publicKey, _ := pubKeyCmd.CombinedOutput()
-	preSharedKeyCmd := exec.Command("sudo", "wg", "genpsk")
+	preSharedKeyCmd := exec.Command("wg", "genpsk")
 	preSharedKey, _ := preSharedKeyCmd.CombinedOutput()
-	return entity.UserKeys{
+	return entity.AuthKeys{
 		PublicKey:    strings.Trim(string((publicKey)), "\n"),
 		PrivateKey:   strings.Trim(string(privateKey), "\n"),
 		PresharedKey: strings.Trim(string(preSharedKey), "\n"),
@@ -93,7 +87,7 @@ func (o *Operator) CreateUser(user *entity.User) error {
 	}
 	defer f.Close()
 
-	user.Keys, _ = o.createKey()
+	user.AuthKeys, _ = o.createKey()
 
 	b, _ := json.MarshalIndent(user, "", "  ")
 	_, err = f.Write(b)
@@ -102,4 +96,37 @@ func (o *Operator) CreateUser(user *entity.User) error {
 		return err
 	}
 	return nil
+}
+
+func (o *Operator) GenerateServerConfig(networkInterface entity.NetworkInterface, routes []entity.Route, users []entity.User) error {
+	f, _ := os.Create("wg0.conf.sample")
+	defer f.Close()
+
+	var row []string
+	row = append(row, "[Interface]")
+	row = append(row, "PrivateKey = "+networkInterface.AuthKeys.PrivateKey)
+	row = append(row, "Address = "+networkInterface.Address)
+	row = append(row, "ListenPort = "+strconv.Itoa(networkInterface.ListenPort))
+	f.Write([]byte(strings.Join(row, "\n")))
+
+	f.Write([]byte("\n\n"))
+
+	for _, v := range users {
+		var row []string
+		row = append(row, "[Peer]")
+		row = append(row, "PublicKey = "+v.AuthKeys.PublicKey)
+		row = append(row, "AllowedIPs = "+o.toStringFromRoutes(routes))
+		f.Write([]byte(strings.Join(row, "\n")))
+	}
+
+	f.Write([]byte("\n"))
+	return nil
+}
+
+func (o *Operator) toStringFromRoutes(routes []entity.Route) string {
+	var row []string
+	for _, v := range routes {
+		row = append(row, v.Address)
+	}
+	return strings.Join(row, ",")
 }
