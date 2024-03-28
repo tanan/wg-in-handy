@@ -75,6 +75,11 @@ func (cmd Command) Run(args []string) error {
 						Usage:  "generate config file",
 						Action: cmd.generateConfig,
 					},
+					{
+						Name:   "genuserconf",
+						Usage:  "generate config file",
+						Action: cmd.generateUserConfig,
+					},
 				},
 			},
 		},
@@ -148,6 +153,39 @@ func (cmd *Command) generateConfig(cCtx *cli.Context) error {
 	},
 		routes,
 		users,
+	)
+	return nil
+}
+
+func (cmd *Command) generateUserConfig(cCtx *cli.Context) error {
+	var routes []entity.Route
+	routes = append(routes, entity.Route{
+		Address:     "10.1.0.0/24",
+		Description: "default",
+	})
+
+	user := entity.User{
+		Name:    "user1",
+		Email:   "user1@example.com",
+		Address: "10.1.0.2/24",
+		AuthKeys: entity.AuthKeys{
+			PublicKey:  "user-publickey",
+			PrivateKey: "privatekey",
+		},
+	}
+	cmd.Operator.GenerateClientConfig(entity.NetworkInterface{
+		Name:          "wg0",
+		Address:       "10.1.0.1/24",
+		PublicAddress: "35.189.132.83",
+		ListenPort:    51820,
+		AuthKeys: entity.AuthKeys{
+			PublicKey:    "publickey",
+			PrivateKey:   "privatekey",
+			PresharedKey: "presharedkey",
+		},
+	},
+		routes,
+		user,
 	)
 	return nil
 }

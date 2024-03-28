@@ -1,10 +1,11 @@
 package entity
 
 type NetworkInterface struct {
-	Name       string
-	Address    string
-	ListenPort int
-	AuthKeys   AuthKeys
+	Name          string
+	Address       string
+	PublicAddress string
+	ListenPort    int
+	AuthKeys      AuthKeys
 }
 
 type Route struct {
@@ -15,6 +16,7 @@ type Route struct {
 type User struct {
 	Name     string   `json:"name"`
 	Email    string   `json:"email"`
+	Address  string   `json:"address"`
 	AuthKeys AuthKeys `json:"auth_keys"`
 }
 
