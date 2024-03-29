@@ -1,17 +1,9 @@
 package entity
 
-type NetworkInterface struct {
-	Name          string
-	Address       string
-	PublicAddress string
-	ListenPort    int
-	AuthKeys      AuthKeys
-}
-
-type Route struct {
-	Address     string
-	Description string
-}
+import (
+	"net"
+	"net/netip"
+)
 
 type User struct {
 	Name     string   `json:"name"`
@@ -24,4 +16,34 @@ type AuthKeys struct {
 	PublicKey    string `json:"public_key"`
 	PrivateKey   string `json:"private_key"`
 	PresharedKey string `json:"preshared_key"`
+}
+
+type Route struct {
+	Address     string
+	Description string
+}
+
+type NetworkInterface struct {
+	Name          string
+	Address       netip.Addr
+	Network       net.IPNet
+	PublicAddress string
+	ListenPort    int
+	AuthKeys      AuthKeys
+}
+
+func NewNetworkInterface(name, network, publicAddr string, listenPort int, authKeys AuthKeys) (*NetworkInterface, error) {
+	ip, ipnet, err := net.ParseCIDR(network)
+	if err != nil {
+		return nil, err
+	}
+	addr := netip.MustParseAddr(ip.To4().String()).Next()
+	return &NetworkInterface{
+		Name:          name,
+		Address:       addr,
+		Network:       *ipnet,
+		PublicAddress: publicAddr,
+		ListenPort:    listenPort,
+		AuthKeys:      authKeys,
+	}, nil
 }

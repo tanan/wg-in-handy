@@ -8,24 +8,22 @@ import (
 )
 
 type Config struct {
-	WGEndpoint         string   `env:"WG_ENDPOINT"`
-	WGInterfaceAddress string   `env:"WG_INTERFACE_ADDRESS"`
-	WGNetwork          string   `env:"WG_NETWORK"`
-	WGListenPort       int      `env:"WG_LISTEN_PORT"`
-	WGAllowedIPs       []string `env:"WG_ALLOWED_IPS" envSeparator:","`
-	WGWorkDir          string   `env:"WG_WORKDIR"`
-	WGConfigPath       string   `env:"WG_CONFIG_PATH"`
+	WGEndpoint   string   `env:"WG_ENDPOINT"`
+	WGNetwork    string   `env:"WG_NETWORK"`
+	WGListenPort int      `env:"WG_LISTEN_PORT"`
+	WGAllowedIPs []string `env:"WG_ALLOWED_IPS" envSeparator:","`
+	WGWorkDir    string   `env:"WG_WORKDIR"`
+	WGConfigPath string   `env:"WG_CONFIG_PATH"`
 }
 
 func NewConfig() Config {
 	return Config{
-		WGEndpoint:         "10.0.0.1:51820",
-		WGListenPort:       51820,
-		WGInterfaceAddress: "10.0.0.1",
-		WGNetwork:          "10.0.0.0/22",
-		WGAllowedIPs:       []string{"0.0.0.0/0"},
-		WGWorkDir:          "/etc/wireguard",
-		WGConfigPath:       "",
+		WGEndpoint:   "10.0.0.1:51820",
+		WGListenPort: 51820,
+		WGNetwork:    "10.0.0.0/22",
+		WGAllowedIPs: []string{"0.0.0.0/0"},
+		WGWorkDir:    "/etc/wireguard",
+		WGConfigPath: "",
 	}
 }
 
