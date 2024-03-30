@@ -23,8 +23,8 @@ func (h *Handler) Health(c *gin.Context) {
 }
 
 // TODO: show wg configuration
-func (h *Handler) ShowInterface(c *gin.Context) {
-	inf := h.Operator.ShowInterface()
+func (h *Handler) ShowWGInterface(c *gin.Context) {
+	inf := h.Operator.ShowWGInterface()
 	c.JSON(http.StatusOK, inf)
 }
 

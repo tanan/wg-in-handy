@@ -48,7 +48,7 @@ func (o *Operator) GenerateClientConfig(networkInterface entity.NetworkInterface
 	row = append(row, "[Peer]")
 	row = append(row, "PublicKey = "+networkInterface.AuthKeys.PrivateKey)
 	row = append(row, "PresharedKey = "+networkInterface.AuthKeys.PresharedKey)
-	row = append(row, "EndPoint = "+networkInterface.PublicAddress)
+	row = append(row, "EndPoint = "+networkInterface.Endpoint)
 	row = append(row, "AllowedIPs = "+o.toStringFromRoutes(routes))
 	f.Write([]byte(strings.Join(row, "\n")))
 

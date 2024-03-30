@@ -24,26 +24,26 @@ type Route struct {
 }
 
 type NetworkInterface struct {
-	Name          string
-	Address       netip.Addr
-	Network       net.IPNet
-	PublicAddress string
-	ListenPort    int
-	AuthKeys      AuthKeys
+	Name       string
+	Address    netip.Addr
+	Network    net.IPNet
+	Endpoint   string
+	ListenPort int
+	AuthKeys   AuthKeys
 }
 
-func NewNetworkInterface(name, network, publicAddr string, listenPort int, authKeys AuthKeys) (*NetworkInterface, error) {
+func NewNetworkInterface(name, network, endpoint string, listenPort int, authKeys AuthKeys) (*NetworkInterface, error) {
 	ip, ipnet, err := net.ParseCIDR(network)
 	if err != nil {
 		return nil, err
 	}
 	addr := netip.MustParseAddr(ip.To4().String()).Next()
 	return &NetworkInterface{
-		Name:          name,
-		Address:       addr,
-		Network:       *ipnet,
-		PublicAddress: publicAddr,
-		ListenPort:    listenPort,
-		AuthKeys:      authKeys,
+		Name:       name,
+		Address:    addr,
+		Network:    *ipnet,
+		Endpoint:   endpoint,
+		ListenPort: listenPort,
+		AuthKeys:   authKeys,
 	}, nil
 }

@@ -2,6 +2,9 @@ package operator
 
 import (
 	"log/slog"
+	"net"
+	"net/netip"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -9,11 +12,9 @@ import (
 	"github.com/tanan/wg-in-handy/entity"
 )
 
-const WireGuardInterface = "wg0"
-
-func (o *Operator) ShowInterface() *entity.NetworkInterface {
+func (o *Operator) ShowWGInterface() *entity.NetworkInterface {
 	// TODO: get wg interface via wg cmd
-	addr, err := o.getAddress(InterfaceName)
+	addr, network, err := o.getAddress(WireGuardInterface)
 	if err != nil {
 		slog.Error("Failed to get interface address", slog.String("error", err.Error()))
 	}
@@ -22,20 +23,25 @@ func (o *Operator) ShowInterface() *entity.NetworkInterface {
 		slog.Error("Failed to get listen-port", slog.String("error", err.Error()))
 	}
 	return &entity.NetworkInterface{
-		Name:       InterfaceName,
+		Name:       WireGuardInterface,
 		Address:    addr,
+		Network:    network,
 		ListenPort: port,
 	}
 }
 
-func (o *Operator) getAddress(inf string) (string, error) {
+func (o *Operator) getAddress(inf string) (netip.Addr, net.IPNet, error) {
 	cmd := exec.Command("ip", "-f", "inet", "-o", "addr", "show", inf)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", err
+		return netip.Addr{}, net.IPNet{}, err
 	}
 	res := strings.Split(string(out), " ")
-	return res[AddressNum], nil
+	ip, ipnet, err := net.ParseCIDR(res[AddressNum])
+	if err != nil {
+		return netip.Addr{}, net.IPNet{}, err
+	}
+	return netip.MustParseAddr(ip.To4().String()), *ipnet, nil
 }
 
 func (o *Operator) getListenPort() (int, error) {
@@ -47,32 +53,31 @@ func (o *Operator) getListenPort() (int, error) {
 	return strconv.Atoi(strings.Trim(string(string(out)), "\n"))
 }
 
-func (o *Operator) CreateWGInterface(wgNetwork string) error {
-	// ip link add dev wg0 type wireguard
-	cmd := exec.Command("ip", "link", "add", "dev", WireGuardInterface, "type", "wireguard")
+func (o *Operator) UpWGInterface() error {
+	filename := "/etc/wireguard/wg0.conf"
+	if _, err := os.Stat(filename); err != nil {
+		slog.Error("file does not exist", slog.String("filename", filename))
+		return err
+	}
+
+	cmd := exec.Command("wg-quick", "up", WireGuardInterface)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
 	}
 
-	// ip address add dev wg0 192.168.2.1/24
-	addrCmd := exec.Command("ip", "address", "add", "dev", WireGuardInterface, wgNetwork)
-	_, err = addrCmd.CombinedOutput()
-	if err != nil {
+	return nil
+}
+
+func (o *Operator) DownWGInterface() error {
+	filename := "/etc/wireguard/wg0.conf"
+	if _, err := os.Stat(filename); err != nil {
+		slog.Error("file does not exist", slog.String("filename", filename))
 		return err
 	}
 
-	// wg setconf wg0 myconfig.conf
-	wgConfPath := "/etc/wireguard" + "wg0.conf"
-	wgCmd := exec.Command("wg", "setconf", WireGuardInterface, wgConfPath)
-	_, err = wgCmd.CombinedOutput()
-	if err != nil {
-		return err
-	}
-
-	// ip link set up dev wg0
-	linkUpCmd := exec.Command("ip", "link", "set", "up", "dev", WireGuardInterface)
-	_, err = linkUpCmd.CombinedOutput()
+	cmd := exec.Command("wg-quick", "down", WireGuardInterface)
+	_, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
 	}

@@ -55,20 +55,17 @@ func (cmd Command) Run(args []string) error {
 					{
 						Name:   "show",
 						Usage:  "show interface setting",
-						Action: cmd.showInterface,
+						Action: cmd.showWGInterface,
 					},
 					{
-						Name:  "setconf",
-						Usage: "add setting via config file",
-						Flags: []cli.Flag{
-							&cli.StringFlag{
-								Name:        "config",
-								Usage:       "set config file path",
-								Aliases:     []string{"c"},
-								Destination: &configPath,
-							},
-						},
-						Action: cmd.setConfig,
+						Name:   "up",
+						Usage:  "create and up interface",
+						Action: cmd.upWGInterface,
+					},
+					{
+						Name:   "down",
+						Usage:  "down interface",
+						Action: cmd.downWGInterface,
 					},
 					{
 						Name:   "genconf",
@@ -112,18 +109,33 @@ func (cmd *Command) runAsAPI(cCtx *cli.Context) error {
 	return nil
 }
 
-func (cmd *Command) showInterface(cCtx *cli.Context) error {
-	inf := cmd.Operator.ShowInterface()
+func (cmd *Command) showWGInterface(cCtx *cli.Context) error {
+	inf := cmd.Operator.ShowWGInterface()
 	slog.Info(
 		"interface", slog.String("Name", inf.Name),
-		slog.String("Address", inf.Address),
+		slog.String("Address", inf.Address.String()),
 		slog.String("ListenPort", strconv.Itoa(inf.ListenPort)),
 	)
 	return nil
 }
 
-// TODO: implement
-func (cmd *Command) setConfig(cCtx *cli.Context) error {
+func (cmd *Command) upWGInterface(cCtx *cli.Context) error {
+	slog.Info("Up WireGuard interface")
+	if err := cmd.Operator.UpWGInterface(); err != nil {
+		slog.Info("Failed to up Wireguard interface")
+		return err
+	}
+	slog.Info("Complete WireGuard interface")
+	return nil
+}
+
+func (cmd *Command) downWGInterface(cCtx *cli.Context) error {
+	slog.Info("Down WireGuard interface")
+	if err := cmd.Operator.DownWGInterface(); err != nil {
+		slog.Info("Failed to down Wireguard interface")
+		return err
+	}
+	slog.Info("Complete WireGuard interface")
 	return nil
 }
 
@@ -141,23 +153,24 @@ func (cmd *Command) generateConfig(cCtx *cli.Context) error {
 			PublicKey: "user-publickey",
 		},
 	})
-	cmd.Operator.GenerateServerConfig(entity.NetworkInterface{
-		Name:       "wg0",
-		Address:    "10.1.0.1/24",
-		ListenPort: 51820,
-		AuthKeys: entity.AuthKeys{
-			PublicKey:    "publickey",
-			PrivateKey:   "privatekey",
-			PresharedKey: "presharedkey",
-		},
+	nic, _ := entity.NewNetworkInterface("wg0", "10.1.0.1/24", "10.1.0.1", 51820, entity.AuthKeys{
+		PublicKey:    "publickey",
+		PrivateKey:   "privatekey",
+		PresharedKey: "presharedkey",
 	},
-		routes,
-		users,
 	)
+	cmd.Operator.GenerateServerConfig(*nic, routes, users)
 	return nil
 }
 
 func (cmd *Command) generateUserConfig(cCtx *cli.Context) error {
+	nic, _ := entity.NewNetworkInterface("wg0", "10.1.0.1/24", "10.1.0.1", 51820, entity.AuthKeys{
+		PublicKey:    "publickey",
+		PrivateKey:   "privatekey",
+		PresharedKey: "presharedkey",
+	},
+	)
+
 	var routes []entity.Route
 	routes = append(routes, entity.Route{
 		Address:     "10.1.0.0/24",
@@ -173,19 +186,6 @@ func (cmd *Command) generateUserConfig(cCtx *cli.Context) error {
 			PrivateKey: "privatekey",
 		},
 	}
-	cmd.Operator.GenerateClientConfig(entity.NetworkInterface{
-		Name:          "wg0",
-		Address:       "10.1.0.1/24",
-		PublicAddress: "35.189.132.83",
-		ListenPort:    51820,
-		AuthKeys: entity.AuthKeys{
-			PublicKey:    "publickey",
-			PrivateKey:   "privatekey",
-			PresharedKey: "presharedkey",
-		},
-	},
-		routes,
-		user,
-	)
+	cmd.Operator.GenerateClientConfig(*nic, routes, user)
 	return nil
 }

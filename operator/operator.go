@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	NameNum       = 1
-	AddressNum    = 6
-	InterfaceName = "wg0"
+	NameNum            = 1
+	AddressNum         = 6
+	WireGuardInterface = "wg0"
 )
 
 type Operator struct{}
