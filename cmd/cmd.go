@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/tanan/wg-in-handy/api"
 	"github.com/tanan/wg-in-handy/entity"
@@ -90,8 +91,12 @@ func (cmd *Command) runAsAPI(cCtx *cli.Context) error {
 	router.Run(":8080")
 
 	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: router,
+		Addr:              ":8080",
+		Handler:           router,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	go func() {

@@ -1,0 +1,49 @@
+name: test
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    paths:
+      - ".github/workflows/test.yaml"
+      - "api/**"
+      - "cmd/**"
+      - "config/**"
+      - "entity/**"
+      - "operator/**"
+      - "main.go"
+      - "go.mod"
+      - "go.sum"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # runs-on: ubuntu-latest
+    runs-on: self-hosted
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.4"
+          check-latest: true
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: go mod tidy
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+          args: --timeout=5m --config=.golangci.yaml
+
+      - name: Test with the Go CLI
+        id: run-unit-test
+        run: go test -v ./...
