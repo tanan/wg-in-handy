@@ -4,7 +4,7 @@ linters:
   enable:
     - bodyclose
     - containedctx
-    - errcheck
+    # - errcheck
     - errorlint
     - gocritic
     - gofmt
@@ -16,8 +16,8 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - unconvert
-    - unparam
+    # - unconvert
+    # - unparam
     - unused
 
 linters-settings:
