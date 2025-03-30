@@ -1,0 +1,26 @@
+linters:
+  enable-all: false
+  disable-all: true
+  enable:
+    - bodyclose
+    - containedctx
+    - errcheck
+    - errorlint
+    - gocritic
+    - gofmt
+    - goimports
+    - gosec
+    - gosimple
+    - ineffassign
+    - misspell
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - unconvert
+    - unparam
+    - unused
+
+linters-settings:
+  gosec:
+    excludes:
+      - G115
